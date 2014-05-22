@@ -1,4 +1,4 @@
-package forumdb.model;
+package model;
 
 import org.joda.time.DateTime;
 
@@ -9,6 +9,7 @@ public class Post {
 
     private String content;
     private DateTime createTime;
+    private String title;
 
     public Post() {
     }
@@ -27,5 +28,13 @@ public class Post {
 
     public void setCreateTime(DateTime createTime) {
         this.createTime = createTime;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

@@ -1,4 +1,4 @@
-package forumdb.model;
+package model;
 
 import org.joda.time.DateTime;
 
@@ -10,6 +10,8 @@ public class User {
     private String login;
     private String city;
     private DateTime joinTime;
+    private int postCount;
+    private String rank;
 
     public User() {
     }
@@ -36,5 +38,21 @@ public class User {
 
     public void setJoinTime(DateTime joinTime) {
         this.joinTime = joinTime;
+    }
+
+    public int getPostCount() {
+        return postCount;
+    }
+
+    public void setPostCount(int postCount) {
+        this.postCount = postCount;
+    }
+
+    public String getRank() {
+        return rank;
+    }
+
+    public void setRank(String rank) {
+        this.rank = rank;
     }
 }

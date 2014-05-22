@@ -12,4 +12,6 @@
   :main ^:skip-aot forumdb.core
   :target-path "target/%s"
   :jvm-opts ["-Dfile.encoding=utf-8"]
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}}
+  :java-source-paths ["src/forumdb/java"]
+)

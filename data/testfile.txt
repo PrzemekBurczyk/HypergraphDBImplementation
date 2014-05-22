@@ -1,0 +1,34 @@
+<report>
+	  <task_result>
+	  <url>
+	  http://forum.tolkien.com.pl/viewtopic.php?t=1094&amp;start=0
+	  </url>
+	  <date>2014-04-10 04:46:57</date>
+	  <rule name="thread-title">
+Temat: Zabanowani
+		  </rule><rule name="user-data">
+Weteran Bitwy Pięciu Armii
+Dołączył(a): 05 Lis 2001
+Wpisy: 291
+Skąd: Sosnowiec
+		  </rule><rule name="user-login">
+Tom Goold
+		  </rule><rule name="post-content">
+Użytkownik:
+ nowicjusz
+ Powód bana:
+ spam, niestosowanie się do MiniFAQ pkt. 2
+ Zabanował:
+ Tom Goold
+selmasongs@poczta.onet.pl
+ Typ bana:
+ stały
+ Uzasadnienie:
+ bezsensowny spam i brak kultury języka polskiego w wypowiedziach
+		  </rule><rule name="post-details">
+Wysłany: 30-01-2003 19:17
+  
+     Temat wpisu:
+		  </rule>
+	</task_result>
+</report>

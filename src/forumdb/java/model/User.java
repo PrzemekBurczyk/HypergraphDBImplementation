@@ -1,5 +1,6 @@
 package model;
 
+import org.hypergraphdb.HGPlainLink;
 import org.joda.time.DateTime;
 
 /**
@@ -54,5 +55,33 @@ public class User {
 
     public void setRank(String rank) {
         this.rank = rank;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+
+        User user = (User) o;
+
+        if (!login.equals(user.login)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return login.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "login='" + login + '\'' +
+                ", city='" + city + '\'' +
+                ", joinTime=" + joinTime +
+                ", postCount=" + postCount +
+                ", rank='" + rank + '\'' +
+                '}';
     }
 }

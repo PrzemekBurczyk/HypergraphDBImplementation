@@ -18,4 +18,27 @@ public class ForumThread {
         this.title = title;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ForumThread)) return false;
+
+        ForumThread that = (ForumThread) o;
+
+        if (!title.equals(that.title)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return title.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "ForumThread{" +
+                "title='" + title + '\'' +
+                '}';
+    }
 }

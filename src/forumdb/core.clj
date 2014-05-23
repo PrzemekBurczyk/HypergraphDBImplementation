@@ -1,10 +1,10 @@
 (ns forumdb.core
-  (:import [org.hypergraphdb HGEnvironment]
+  (:import [org.hypergraphdb HGEnvironment HGHandle HGPlainLink HGQuery$hg]
            (java.util Locale TimeZone)
            (java.text SimpleDateFormat)
            (java.io File)
            (model User ForumThread Post)
-  )
+           (org.joda.time DateTime))
   (:require [clojure.string :as string]
             [clojure.xml :as xml]
             [clj-time.format :as f]
@@ -17,7 +17,7 @@
 (def database (atom nil))
 (def db-name "db")
 (def data-files-directory "data")
-(def xml-filename "tolkien.xml")
+(def xml-filename "testfile.txt")
 
 (def data-tag "rule")
 
@@ -56,7 +56,7 @@
   (do
 
     (println "Reading xml file...")
-    (def parsed (xml/parse (string/join "/" [data-files-directory "testfile.txt"])))
+    (def parsed (xml/parse (string/join "/" [data-files-directory xml-filename])))
     (println "Xml file loaded")
     (println)
 
@@ -65,21 +65,34 @@
     (println "Database created")
     (println)
 
+    (def saveTime (Long. 0))
+
+    (def locale (Locale. "pl" "PL"))
+    (println "Parsing and saving data...")
+    (def start (System/currentTimeMillis))
+
     (doseq [task-result (:content parsed)]
       (let [user (User.) thread (ForumThread.) post (Post.)]
         (doseq [rule (filter (fn [x] (= (name (:tag x)) data-tag)) (:content task-result))]
           (cond
             (= (:name (:attrs rule)) thread-title-name)
             (do
-              (. thread setTitle (re-find (re-pattern "(?<=Temat: ).*") (first (:content rule))))
+              (. thread setTitle (string/trim (re-find (re-pattern "(?<=Temat: ).*") (first (:content rule)))))
             )
             (= (:name (:attrs rule)) user-data-name)
             (do
-              (def locale (Locale. "pl" "PL"))
-              (. user setRank (string/trim (re-find (re-pattern "^.*(?=\nDołączył.a.: )") (string/trim (first (:content rule))))))
-              (. user setJoinTime (f/parse (f/with-locale (f/formatter "dd MM YYYY" (t/default-time-zone)) locale) (. (SimpleDateFormat. "dd MM yyyy" locale) format (. (SimpleDateFormat. "dd MMM yyyy" locale) parse (re-find (re-pattern "(?<=Dołączył.a.: ).*") (first (:content rule)))))))
-              (. user setPostCount (Integer/parseInt (re-find (re-pattern "(?<=Wpisy: ).*") (first (:content rule)))))
-              (. user setCity (string/trim (re-find (re-pattern "(?<=Skąd: ).*") (first (:content rule)))))
+              (try
+                (. user setRank (string/trim (re-find (re-pattern "^.*(?=\nDołączył.a.: )") (string/trim (first (:content rule))))))
+                (catch Exception e (. user setRank "")))
+              (try
+                (. user setJoinTime (DateTime. (. (SimpleDateFormat. "dd MMM yyyy" locale) parse (re-find (re-pattern "(?<=Dołączył.a.: ).*") (first (:content rule))))))
+                (catch Exception e (. user setJoinTime nil)))
+              (try
+                (. user setPostCount (Integer/parseInt (re-find (re-pattern "(?<=Wpisy: ).*") (first (:content rule)))))
+                (catch Exception e (. user setPostCount 0)))
+              (try
+                (. user setCity (string/trim (re-find (re-pattern "(?<=Skąd: ).*") (first (:content rule)))))
+                (catch Exception e (. user setCity "")))
             )
             (= (:name (:attrs rule)) user-login-name)
             (do
@@ -87,38 +100,61 @@
             )
             (= (:name (:attrs rule)) post-content-name)
             (do
-              (. post setContent (string/trim (first (:content rule))))
+              (try
+                (. post setContent (string/trim (first (:content rule))))
+                (catch Exception e (. post setContent "")))
             )
             (= (:name (:attrs rule)) post-details-name)
             (do
               (. post setCreateTime (f/parse (f/formatter "dd-MM-YYYY HH:mm" (t/default-time-zone)) (re-find (re-pattern "(?<=Wysłany: ).*") (first (:content rule)))))
-              (. post setTitle (re-find (re-pattern "(?<=Temat wpisu: ).*") (first (:content rule))))
+              (try
+                (. post setTitle (string/trim (re-find (re-pattern "(?<=Temat wpisu: ).*") (first (:content rule)))))
+                (catch Exception e (. post setTitle "")))
             )
           )
         )
-        (println "Wątek")
-        (println (. thread getTitle))
-        (println)
-        (println "Użytkownik")
-        (println (. user getLogin))
-        (println (. user getCity))
-        (println (. user getRank))
-        (println (. user getJoinTime))
-        (println (. user getPostCount))
-        (println)
-        (println "Post")
-        (println (. post getContent))
-        (println (. post getCreateTime))
-        (println (. post getTitle))
-        (println)
-      )
-    )
 
-    (def handler (. @database add "Przemek"))
-    (println (. @database get handler))
+        (let [saveStart (System/currentTimeMillis)]
+          (def userHandle (HGQuery$hg/assertAtom @database user))
+          (def threadHandle (HGQuery$hg/assertAtom @database thread))
+          (def postHandle (. @database add post))
+
+          (HGQuery$hg/assertAtom @database (HGPlainLink. (into-array HGHandle [threadHandle userHandle postHandle])))
+
+          (def saveTime (+ saveTime (- (System/currentTimeMillis) saveStart)))
+        )
+
+        (println (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [threadHandle userHandle]))) size))
+        (println (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [postHandle userHandle]))) size))
+        (println (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [postHandle threadHandle]))) size))
+
+        ;(println "Wątek")
+        ;(println (. thread getTitle))
+        ;(println)
+        ;(println "Użytkownik")
+        ;(println (. user getLogin))
+        ;(println (. user getCity))
+        ;(println (. user getRank))
+        ;(println (. user getJoinTime))
+        ;(println (. user getPostCount))
+        ;(println)
+        ;(println "Post")
+        ;(println (. post getContent))
+        ;(println (. post getCreateTime))
+        ;(println (. post getTitle))
+        ;(println)
+        )
+      )
+
+    ;(doseq [user (HGQuery$hg/getAll @database (HGQuery$hg/type User))]
+    ;  (println (. user toString))
+    ;)
+
+    (def stop (System/currentTimeMillis))
+    (println (string/join " " ["Data parsed and saved in" (String/valueOf (/ (- stop start) 1000.0)) "seconds"]))
+    (println (string/join " " ["Saving took" (String/valueOf (/ saveTime 1000.0)) "seconds"]))
 
     (println)
-
     (println "Closing database...")
     (close-database)
     (println "Database closed")

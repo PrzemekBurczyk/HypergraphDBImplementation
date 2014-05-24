@@ -4,7 +4,9 @@
            (java.text SimpleDateFormat)
            (java.io File)
            (model User ForumThread Post)
-           (org.joda.time DateTime))
+           (org.joda.time DateTime)
+           (org.hypergraphdb.atom HGRel HGRelType)
+           (org.hypergraphdb.query HGQueryCondition))
   (:require [clojure.string :as string]
             [clojure.xml :as xml]
             [clj-time.format :as f]
@@ -60,12 +62,13 @@
     (if (. (File. db-name) exists)
       (do
         (println "Database already exists")
-        (def database-exists)
+        (def database-exists 1)
         (println)
       )
       (do
         (println "Reading xml file...")
         (def parsed (xml/parse (string/join "/" [data-files-directory xml-filename])))
+        (def database-exists 0)
         (println "Xml file loaded")
         (println)
       )
@@ -76,7 +79,12 @@
     (println "Database opened")
     (println)
 
-    (if (not database-exists)
+    (def topType (. (. @database getTypeSystem) getTop))
+    (def userThreadRelType (HGQuery$hg/assertAtom @database (HGRelType. "user-thread" (into-array HGHandle [topType topType]))))
+    (def userPostRelType (HGQuery$hg/assertAtom @database (HGRelType. "user-post" (into-array HGHandle [topType topType]))))
+    (def threadPostRelType (HGQuery$hg/assertAtom @database (HGRelType. "thread-post" (into-array HGHandle [topType topType]))))
+
+    (if (= database-exists 0)
       (do
         (def saveTime (Long. 0))
 
@@ -132,9 +140,10 @@
               (def threadHandle (HGQuery$hg/assertAtom @database thread))
               (def postHandle (. @database add post))
 
-              (. @database add (HGPlainLink. (into-array HGHandle [threadHandle userHandle postHandle])))
-              ;(. @database add (HGPlainLink. (into-array HGHandle [userHandle postHandle])))
-              ;(. @database add (HGPlainLink. (into-array HGHandle [threadHandle postHandle])))
+              ;(. @database add (HGPlainLink. (into-array HGHandle [threadHandle userHandle postHandle])))
+              (HGQuery$hg/addUnique @database (HGRel. (into-array HGHandle [userHandle threadHandle])) userThreadRelType (HGQuery$hg/link (into-array HGHandle [threadHandle userHandle])))
+              (. @database add (HGRel. (into-array HGHandle [userHandle postHandle])) userPostRelType)
+              (. @database add (HGRel. (into-array HGHandle [threadHandle postHandle])) threadPostRelType)
 
               (def saveTime (+ saveTime (- (System/currentTimeMillis) saveStart)))
               )
@@ -165,6 +174,7 @@
         (def stop (System/currentTimeMillis))
         (println (string/join " " ["Data parsed and saved in" (String/valueOf (/ (- stop start) 1000.0)) "seconds"]))
         (println (string/join " " ["Saving took" (String/valueOf (/ saveTime 1000.0)) "seconds"]))
+        (println)
       )
       (do
         (println "Database already loaded, no need to parse")
@@ -174,7 +184,7 @@
 
     (println "liczba tematów utworzonych w 2013 roku")
     (let [operationStart (System/currentTimeMillis)]
-
+      ;(HGQuery$hg/findAll (HGQuery$hg/and (HGQuery$hg/type ForumThread) (HGQuery$hg/eq "")))
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
     (println)
@@ -196,7 +206,8 @@
     (println "użytkownik wypowiadający się w największej liczbie tematów")
     (let [operationStart (System/currentTimeMillis)]
       (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/type User)))
-      (def uniqueThreadsCount (map (fn [user] (reduce (fn [count thread] (if (> (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [user thread]))) size) 0) (+ count 1) count)) 0 (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))) userHandles))
+      (def uniqueThreadsCount (map (fn [userHandle] (. (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userThreadRelType)]))) size)) userHandles))
+      ;(def uniqueThreadsCount (map (fn [user] (reduce (fn [count thread] (if (> (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [user thread]))) size) 0) (+ count 1) count)) 0 (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))) userHandles))
       (def mostActiveUser (reduce (fn [x y] (if (> (last x) (last y)) x y)) (map vector userHandles uniqueThreadsCount)))
       (println (. (. @database get (first mostActiveUser)) getLogin) (last mostActiveUser))
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))

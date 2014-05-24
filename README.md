@@ -5,7 +5,6 @@ HypergraphDBImplementation
 3. implementacja persystencji dla systemu obsługi forum dyskusyjnego,
 4. pomiar wydajności ładowania danych - sumaryczny czas, bez parsowania XML
 5. pomiar wydajności określonych operacji:
-
   * liczba tematów utworzonych w 2013 roku
   * najbardziej popularny temat w maju 2013
   * średnia długość tekstu posta

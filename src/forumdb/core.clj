@@ -6,7 +6,8 @@
            (model User ForumThread Post)
            (org.joda.time DateTime)
            (org.hypergraphdb.atom HGRel HGRelType)
-           (org.hypergraphdb.query HGQueryCondition))
+           (org.hypergraphdb.query HGQueryCondition AtomPartRegExPredicate)
+           (java.util.regex Pattern))
   (:require [clojure.string :as string]
             [clojure.xml :as xml]
             [clj-time.format :as f]
@@ -226,15 +227,17 @@
 
     (println "liczba postów zawierających słowo 'Frodo'")
     (let [operationStart (System/currentTimeMillis)]
-      (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
-      (println (count (filter (fn [post] (if (re-find #"Frodo" (. post getContent)) true false)) posts)))
+      (println (HGQuery$hg/count @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Post) (AtomPartRegExPredicate. (into-array String ["content"]) (Pattern/compile ".*Frodo.*" Pattern/DOTALL))]))))
+      ;(def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
+      ;(println (count (filter (fn [post] (if (re-find #"Frodo" (. post getContent)) true false)) posts)))
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
     (println)
 
     (println "liczba postów wysłanych przez użytkowników z miasta na literę 'K'")
     (let [operationStart (System/currentTimeMillis)]
-      (def userHandles (filter (fn [userHandle] (. (. (. @database get userHandle) getCity) startsWith "K")) (HGQuery$hg/findAll @database (HGQuery$hg/type User))))
+      (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type User) (AtomPartRegExPredicate. (into-array String ["city"]) (Pattern/compile "^K.*" Pattern/MULTILINE))]))))
+      ;(def userHandles (filter (fn [userHandle] (. (. (. @database get userHandle) getCity) startsWith "K")) (HGQuery$hg/findAll @database (HGQuery$hg/type User))))
       (println (apply + (map (fn [userHandle] (. (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userPostRelType)]))) size)) userHandles)))
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
@@ -242,6 +245,7 @@
 
     (println "35te najczęściej użyte słowo w treści posta")
     (let [operationStart (System/currentTimeMillis)]
+      (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
 
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
@@ -253,10 +257,10 @@
     (println "Database closed")
     (println)
 
-    (println "Deleting database...")
-    (delete-database)
-    (println "Database deleted")
-    (println)
+    ;(println "Deleting database...")
+    ;(delete-database)
+    ;(println "Database deleted")
+    ;(println)
 
   )
 )

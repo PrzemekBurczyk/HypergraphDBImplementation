@@ -27,8 +27,108 @@ selmasongs@poczta.onet.pl
  bezsensowny spam i brak kultury języka polskiego w wypowiedziach
 		  </rule><rule name="post-details">
 Wysłany: 30-01-2003 19:17
-  
+
      Temat wpisu:
 		  </rule>
 	</task_result>
+
+
+	<task_result>
+    	  <url>
+    	  http://forum.tolkien.com.pl/viewtopic.php?t=1094&amp;start=0
+    	  </url>
+    	  <date>2014-04-10 04:46:57</date>
+    	  <rule name="thread-title">
+    Temat: Inny temat
+    		  </rule><rule name="user-data">
+    Weteran Bitwy Pięciu Armii
+    Dołączył(a): 05 Lis 2001
+    Wpisy: 291
+    Skąd: Sosnowiec
+    		  </rule><rule name="user-login">
+    Tom Goold
+    		  </rule><rule name="post-content">
+    Użytkownik:
+     nowicjusz
+     Powód bana:
+     spam, niestosowanie się do MiniFAQ pkt. 2
+     Zabanował:
+     Tom Goold
+    selmasongs@poczta.onet.pl
+     Typ bana:
+     stały
+     Uzasadnienie:
+     bezsensowny spam i brak kultury języka polskiego w wypowiedziach
+    		  </rule><rule name="post-details">
+    Wysłany: 30-01-2003 19:17
+
+         Temat wpisu:
+    		  </rule>
+    	</task_result>
+
+
+	<task_result>
+    	  <url>http://forum.tolkien.com.pl/viewtopic.php?t=1094&amp;start=0</url>
+    	  <date>2014-04-10 04:46:57</date>
+    	  <rule name="thread-title">
+    Temat: Zabanowani
+    		  </rule><rule name="user-data">
+    Administrator
+    Dołączył(a): 20 Wrz 2001
+    Wpisy: 1111
+    Skąd: 010101
+    		  </rule><rule name="user-login">
+    elfy
+    		  </rule><rule name="post-content">
+    Użytkownik:
+     Liquid
+     Powód bana:
+     spam, niestosowanie się do MiniFAQ
+     Zabanował:
+     elfy
+    elfy@tolkien.com.pl
+     Typ bana:
+     stały
+     Uzasadnienie:
+     nieprzeczytane MiniFAQ,nagminne łamanie zasady "forum to nie chat" i wielu innych
+    		  </rule><rule name="post-details">
+    Wysłany: 06-01-2003 21:12
+
+         Temat wpisu:
+    		  </rule>
+    	</task_result>
+
+
+
+    	<task_result>
+    	  <url>http://forum.tolkien.com.pl/viewtopic.php?t=1094&amp;start=0</url>
+    	  <date>2014-04-10 04:46:57</date>
+    	  <rule name="thread-title">
+    Temat: Zabanowani
+    		  </rule><rule name="user-data">
+    Administrator
+    Dołączył(a): 20 Wrz 2001
+    Wpisy: 1111
+    Skąd: 010101
+    		  </rule><rule name="user-login">
+    elfy
+    		  </rule><rule name="post-content">
+    Użytkownik:
+     Dunadanka
+     Powód bana:
+     za spam
+     Zabanował:
+     elfy
+    elfy@tolkien.com.pl
+     Typ bana:
+     stały
+     Uzasadnienie:
+     w ciągu dwóch dni około 30 wpisów 99% było takich jak poniżej (cytaty tylko z dzisiejszego dnia) Spam i mania nabijania sobie licznika wpisów...
+    1) pisanie bezsensu i nie na temat
+    		  </rule><rule name="post-details">
+    Wysłany: 02-11-2002 18:59
+
+         Temat wpisu:
+    		  </rule>
+    	</task_result>
 </report>

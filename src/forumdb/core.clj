@@ -119,7 +119,9 @@
           (def threadHandle (HGQuery$hg/assertAtom @database thread))
           (def postHandle (. @database add post))
 
-          (HGQuery$hg/assertAtom @database (HGPlainLink. (into-array HGHandle [threadHandle userHandle postHandle])))
+          (. @database add (HGPlainLink. (into-array HGHandle [threadHandle userHandle postHandle])))
+          ;(. @database add (HGPlainLink. (into-array HGHandle [userHandle postHandle])))
+          ;(. @database add (HGPlainLink. (into-array HGHandle [threadHandle postHandle])))
 
           (def saveTime (+ saveTime (- (System/currentTimeMillis) saveStart)))
         )
@@ -127,6 +129,7 @@
         (println (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [threadHandle userHandle]))) size))
         (println (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [postHandle userHandle]))) size))
         (println (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [postHandle threadHandle]))) size))
+        (println)
 
         ;(println "Wątek")
         ;(println (. thread getTitle))
@@ -146,13 +149,17 @@
         )
       )
 
-    ;(doseq [user (HGQuery$hg/getAll @database (HGQuery$hg/type User))]
-    ;  (println (. user toString))
-    ;)
-
     (def stop (System/currentTimeMillis))
     (println (string/join " " ["Data parsed and saved in" (String/valueOf (/ (- stop start) 1000.0)) "seconds"]))
     (println (string/join " " ["Saving took" (String/valueOf (/ saveTime 1000.0)) "seconds"]))
+
+    (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/type User)))
+    (def uniqueThreadsCount (map (fn [user] (reduce (fn [count thread] (if (> (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [user thread]))) size) 0) (+ count 1) count)) 0 (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))) userHandles))
+    (println (map (fn [user] (. (. @database get user) getLogin)) userHandles))
+    (println uniqueThreadsCount)
+    (def mostActiveUser (reduce (fn [x y] (if (> (last x) (last y)) x y)) (map vector userHandles uniqueThreadsCount)))
+    (println (. (. @database get (first mostActiveUser)) getLogin))
+    (println (last mostActiveUser))
 
     (println)
     (println "Closing database...")

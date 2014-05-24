@@ -179,12 +179,14 @@
       (do
         (println "Database already loaded, no need to parse")
         (println)
+
       )
     )
 
     (println "liczba tematów utworzonych w 2013 roku")
     (let [operationStart (System/currentTimeMillis)]
       ;(HGQuery$hg/findAll (HGQuery$hg/and (HGQuery$hg/type ForumThread) (HGQuery$hg/eq "")))
+
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
     (println)
@@ -198,7 +200,8 @@
 
     (println "średnia długość tekstu posta")
     (let [operationStart (System/currentTimeMillis)]
-
+      (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
+      (println (quot (reduce (fn [count post] (+ (. (. post getContent) length) count)) 0 posts)  (count posts)))
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
     (println)
@@ -223,14 +226,16 @@
 
     (println "liczba postów zawierających słowo 'Frodo'")
     (let [operationStart (System/currentTimeMillis)]
-
+      (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
+      (println (count (filter (fn [post] (if (re-find #"Frodo" (. post getContent)) true false)) posts)))
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
     (println)
 
     (println "liczba postów wysłanych przez użytkowników z miasta na literę 'K'")
     (let [operationStart (System/currentTimeMillis)]
-
+      (def userHandles (filter (fn [userHandle] (. (. (. @database get userHandle) getCity) startsWith "K")) (HGQuery$hg/findAll @database (HGQuery$hg/type User))))
+      (println (apply + (map (fn [userHandle] (. (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userPostRelType)]))) size)) userHandles)))
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
     (println)
@@ -248,10 +253,10 @@
     (println "Database closed")
     (println)
 
-    ;(println "Deleting database...")
-    ;(delete-database)
-    ;(println "Database deleted")
-    ;(println)
+    (println "Deleting database...")
+    (delete-database)
+    (println "Database deleted")
+    (println)
 
   )
 )

@@ -76,10 +76,11 @@ Wysłany: 30-01-2003 19:17
     Administrator
     Dołączył(a): 20 Wrz 2001
     Wpisy: 1111
-    Skąd: 010101
+    Skąd: K010101
     		  </rule><rule name="user-login">
     elfy
     		  </rule><rule name="post-content">
+    		  Frodo
     Użytkownik:
      Liquid
      Powód bana:
@@ -109,7 +110,7 @@ Wysłany: 30-01-2003 19:17
     Administrator
     Dołączył(a): 20 Wrz 2001
     Wpisy: 1111
-    Skąd: 010101
+    Skąd: K010101
     		  </rule><rule name="user-login">
     elfy
     		  </rule><rule name="post-content">
@@ -123,7 +124,8 @@ Wysłany: 30-01-2003 19:17
      Typ bana:
      stały
      Uzasadnienie:
-     w ciągu dwóch dni około 30 wpisów 99% było takich jak poniżej (cytaty tylko z dzisiejszego dnia) Spam i mania nabijania sobie licznika wpisów...
+     Frodo
+     w ciągu dwóch dni około 30 wpisów 99% Frodo było takich jak poniżej (cytaty tylko z dzisiejszego dnia) Spam i mania nabijania sobie licznika wpisów...
     1) pisanie bezsensu i nie na temat
     		  </rule><rule name="post-details">
     Wysłany: 02-11-2002 18:59

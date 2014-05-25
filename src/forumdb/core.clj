@@ -246,7 +246,7 @@
     (println "35te najczęściej użyte słowo w treści posta")
     (let [operationStart (System/currentTimeMillis)]
       (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
-
+      (println (first (nth (sort-by val > (reduce (fn [wordMap post] (merge-with + wordMap (reduce (fn [postWordMap word] (assoc postWordMap word (+ 1 (get postWordMap word 0)))) {} (string/split (string/triml (string/replace (. post getContent) (Pattern/compile "\\W" Pattern/UNICODE_CHARACTER_CLASS) " ")) #"\s+")))) {} posts)) 34)))
       (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
       )
     (println)

@@ -186,68 +186,87 @@
 
     (println "liczba tematów utworzonych w 2013 roku")
     (let [operationStart (System/currentTimeMillis)]
-      ;(HGQuery$hg/findAll (HGQuery$hg/and (HGQuery$hg/type ForumThread) (HGQuery$hg/eq "")))
+      (do
+        ;(HGQuery$hg/findAll (HGQuery$hg/and (HGQuery$hg/type ForumThread) (HGQuery$hg/eq "")))
 
-      (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        )
       )
     (println)
 
     (println "najbardziej popularny temat w maju 2013")
     (let [operationStart (System/currentTimeMillis)]
+      (do
 
-      (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        )
       )
     (println)
 
     (println "średnia długość tekstu posta")
     (let [operationStart (System/currentTimeMillis)]
-      (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
-      (println (quot (reduce (fn [count post] (+ (. (. post getContent) length) count)) 0 posts)  (count posts)))
-      (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+      (do
+        (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
+        (println (quot (reduce (fn [count post] (+ (. (. post getContent) length) count)) 0 posts) (count posts)))
+        (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        )
       )
     (println)
 
     (println "użytkownik wypowiadający się w największej liczbie tematów")
     (let [operationStart (System/currentTimeMillis)]
-      (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/type User)))
-      (def uniqueThreadsCount (map (fn [userHandle] (. (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userThreadRelType)]))) size)) userHandles))
-      ;(def uniqueThreadsCount (map (fn [user] (reduce (fn [count thread] (if (> (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [user thread]))) size) 0) (+ count 1) count)) 0 (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))) userHandles))
-      (def mostActiveUser (reduce (fn [x y] (if (> (last x) (last y)) x y)) (map vector userHandles uniqueThreadsCount)))
-      (println (. (. @database get (first mostActiveUser)) getLogin) (last mostActiveUser))
-      (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+      (do
+        (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/type User)))
+        (def uniqueThreadsCount (map (fn [userHandle] (HGQuery$hg/count @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userThreadRelType)])))) userHandles))
+        ;(def uniqueThreadsCount (map (fn [user] (reduce (fn [count thread] (if (> (. (HGQuery$hg/findAll @database (HGQuery$hg/link (into-array HGHandle [user thread]))) size) 0) (+ count 1) count)) 0 (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))) userHandles))
+        (def mostActiveUser (reduce (fn [x y] (if (> (last x) (last y)) x y)) (map vector userHandles uniqueThreadsCount)))
+        (println (. (. @database get (first mostActiveUser)) getLogin) (last mostActiveUser))
+        (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        )
       )
     (println)
 
     (println "użytkownik komentujący największą liczbę innych użytkowników")
     (let [operationStart (System/currentTimeMillis)]
-
-      (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+      (do
+        (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/type User)))
+        (def postsCount (map (fn [userHandle] (HGQuery$hg/count @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userPostRelType)])))) userHandles))
+        (def mostActiveUser (reduce (fn [x y] (if (> (last x) (last y)) x y)) (map vector userHandles postsCount)))
+        (println (. (. @database get (first mostActiveUser)) getLogin) (last mostActiveUser))
+        (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        )
       )
     (println)
 
     (println "liczba postów zawierających słowo 'Frodo'")
     (let [operationStart (System/currentTimeMillis)]
-      (println (HGQuery$hg/count @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Post) (AtomPartRegExPredicate. (into-array String ["content"]) (Pattern/compile ".*Frodo.*" Pattern/DOTALL))]))))
-      ;(def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
-      ;(println (count (filter (fn [post] (if (re-find #"Frodo" (. post getContent)) true false)) posts)))
-      (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+      (do
+        (println (HGQuery$hg/count @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Post) (AtomPartRegExPredicate. (into-array String ["content"]) (Pattern/compile ".*Frodo.*" Pattern/DOTALL))]))))
+        ;(def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
+        ;(println (count (filter (fn [post] (if (re-find #"Frodo" (. post getContent)) true false)) posts)))
+        (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        )
       )
     (println)
 
     (println "liczba postów wysłanych przez użytkowników z miasta na literę 'K'")
     (let [operationStart (System/currentTimeMillis)]
-      (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type User) (AtomPartRegExPredicate. (into-array String ["city"]) (Pattern/compile "^K.*" Pattern/MULTILINE))]))))
-      ;(def userHandles (filter (fn [userHandle] (. (. (. @database get userHandle) getCity) startsWith "K")) (HGQuery$hg/findAll @database (HGQuery$hg/type User))))
-      (println (apply + (map (fn [userHandle] (. (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userPostRelType)]))) size)) userHandles)))
-      (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+      (do
+        (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type User) (AtomPartRegExPredicate. (into-array String ["city"]) (Pattern/compile "^K.*" Pattern/MULTILINE))]))))
+        ;(def userHandles (filter (fn [userHandle] (. (. (. @database get userHandle) getCity) startsWith "K")) (HGQuery$hg/findAll @database (HGQuery$hg/type User))))
+        (println (apply + (map (fn [userHandle] (. (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userPostRelType)]))) size)) userHandles)))
+        (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        )
       )
     (println)
 
     (println "35te najczęściej użyte słowo w treści posta")
     (let [operationStart (System/currentTimeMillis)]
-      (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
-      (println (first (nth (sort-by val > (reduce (fn [wordMap post] (merge-with + wordMap (reduce (fn [postWordMap word] (assoc postWordMap word (+ 1 (get postWordMap word 0)))) {} (string/split (string/triml (string/replace (. post getContent) (Pattern/compile "\\W" Pattern/UNICODE_CHARACTER_CLASS) " ")) #"\s+")))) {} posts)) 34)))
-      (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+      (do
+        (def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
+        (println (first (nth (sort-by val > (reduce (fn [wordMap post] (merge-with + wordMap (reduce (fn [postWordMap word] (assoc postWordMap word (+ 1 (get postWordMap word 0)))) {} (string/split (string/triml (string/replace (. post getContent) (Pattern/compile "\\W" Pattern/UNICODE_CHARACTER_CLASS) " ")) #"\s+")))) {} posts)) 34)))
+        (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        )
       )
     (println)
 

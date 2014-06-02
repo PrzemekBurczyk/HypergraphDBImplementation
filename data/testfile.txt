@@ -60,7 +60,7 @@ Wysłany: 30-01-2003 19:17
      Uzasadnienie:
      bezsensowny spam i brak kultury języka polskiego w wypowiedziach
     		  </rule><rule name="post-details">
-    Wysłany: 30-01-2003 19:17
+    Wysłany: 30-01-2013 19:17
 
          Temat wpisu:
     		  </rule>

@@ -1,5 +1,5 @@
 (ns forumdb.core
-  (:import [org.hypergraphdb HGEnvironment HGHandle HGPlainLink HGQuery$hg HGQuery]
+  (:import [org.hypergraphdb HGEnvironment HGHandle HGPlainLink HGQuery$hg HGQuery HGValueLink]
            (java.util Locale TimeZone)
            (java.text SimpleDateFormat)
            (java.io File)
@@ -145,7 +145,8 @@
               ;(. @database add (HGPlainLink. (into-array HGHandle [threadHandle userHandle postHandle])))
               (HGQuery$hg/addUnique @database (HGRel. (into-array HGHandle [userHandle threadHandle])) userThreadRelType (HGQuery$hg/link (into-array HGHandle [userHandle threadHandle])))
               (. @database add (HGRel. (into-array HGHandle [userHandle postHandle])) userPostRelType)
-              (. @database add (HGRel. (into-array HGHandle [threadHandle postHandle])) threadPostRelType)
+              ;(. @database add (HGRel. (into-array HGHandle [threadHandle postHandle])) threadPostRelType)
+              (. @database add (HGValueLink. (. (. post getCreateTime) getMillis) (into-array HGHandle [threadHandle postHandle])))
 
               (def saveTime (+ saveTime (- (System/currentTimeMillis) saveStart)))
               )
@@ -157,31 +158,31 @@
             )
           )
 
-        (println "Preprocessing...")
-        (let [saveStart (System/currentTimeMillis)]
-          (do
-            (def threadHandles (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))
-            (println 1)
-            (def threadsPostsLinks (doall (map (fn [threadHandle] (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident threadHandle) (HGQuery$hg/type threadPostRelType)])))) threadHandles)))
-            (println 2)
-            (def threadsPosts (doall (map (fn [threadPostsLinks] (map (fn [threadPostLink] (HGQuery$hg/findOne @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/target threadPostLink) (HGQuery$hg/type Post)])))) threadPostsLinks)) threadsPostsLinks)))
-            (println 3)
-            (def threadsFirstPost (doall (map (fn [threadPosts] (reduce (fn [currentFirstPost threadPost] (if (t/before? (. (. @database get currentFirstPost) getCreateTime) (. (. @database get threadPost) getCreateTime)) currentFirstPost threadPost)) threadPosts)) threadsPosts)))
-            (println 4)
-            ;(map (fn [threadHandle threadFirstPost] (. @database add (HGRel. (into-array HGHandle [threadHandle threadFirstPost])) threadFirstPostRelType)) threadHandles threadsFirstPost)
-            (doseq [threadPostPair (map vector threadHandles threadsFirstPost)]
-              (. @database add (HGRel. (into-array HGHandle [(first threadPostPair) (last threadPostPair)])) threadFirstPostRelType)
-              )
-
-            (def saveTime (+ saveTime (- (System/currentTimeMillis) saveStart)))
-            (def preprocessTime (- (System/currentTimeMillis) saveStart))
-            )
-          )
+        ;(println "Preprocessing...")
+        ;(let [saveStart (System/currentTimeMillis)]
+        ;  (do
+        ;    (def threadHandles (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))
+        ;    (println 1)
+        ;    (def threadsPostsLinks (doall (map (fn [threadHandle] (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident threadHandle) (HGQuery$hg/type threadPostRelType)])))) threadHandles)))
+        ;    (println 2)
+        ;    (def threadsPosts (doall (map (fn [threadPostsLinks] (map (fn [threadPostLink] (HGQuery$hg/findOne @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/target threadPostLink) (HGQuery$hg/type Post)])))) threadPostsLinks)) threadsPostsLinks)))
+        ;    (println 3)
+        ;    (def threadsFirstPost (doall (map (fn [threadPosts] (reduce (fn [currentFirstPost threadPost] (if (t/before? (. (. @database get currentFirstPost) getCreateTime) (. (. @database get threadPost) getCreateTime)) currentFirstPost threadPost)) threadPosts)) threadsPosts)))
+        ;    (println 4)
+        ;    ;(map (fn [threadHandle threadFirstPost] (. @database add (HGRel. (into-array HGHandle [threadHandle threadFirstPost])) threadFirstPostRelType)) threadHandles threadsFirstPost)
+        ;    (doseq [threadPostPair (map vector threadHandles threadsFirstPost)]
+        ;      (. @database add (HGRel. (into-array HGHandle [(first threadPostPair) (last threadPostPair)])) threadFirstPostRelType)
+        ;      )
+        ;
+        ;    (def saveTime (+ saveTime (- (System/currentTimeMillis) saveStart)))
+        ;    (def preprocessTime (- (System/currentTimeMillis) saveStart))
+        ;    )
+        ;  )
 
         (def stop (System/currentTimeMillis))
         (println (string/join " " ["Data parsed and saved in" (String/valueOf (/ (- stop start) 1000.0)) "seconds"]))
         (println (string/join " " ["Saving took" (String/valueOf (/ saveTime 1000.0)) "seconds"]))
-        (println (string/join " " ["Preprocessing took" (String/valueOf (/ preprocessTime 1000.0)) "seconds"]))
+        ;(println (string/join " " ["Preprocessing took" (String/valueOf (/ preprocessTime 1000.0)) "seconds"]))
         (println)
       )
       (do
@@ -194,11 +195,20 @@
     (let [operationStart (System/currentTimeMillis)]
       (do
         (println "liczba tematów utworzonych w 2013 roku")
-        (def threadFirstPostLinks (HGQuery$hg/findAll @database (HGQuery$hg/type threadFirstPostRelType)))
-        (println (count threadFirstPostLinks))
-        (def threadFirstPosts (map (fn [threadFirstPostLink] (HGQuery$hg/getOne @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Post) (HGQuery$hg/target threadFirstPostLink)])))) threadFirstPostLinks))
-        (println (count threadFirstPosts))
-        (println (. (filter (fn [threadFirstPost] (t/within? (t/interval (t/date-time 2013) (t/date-time 2014)) (. threadFirstPost getCreateTime))) threadFirstPosts) size))
+        ;(def threadFirstPostLinks (HGQuery$hg/findAll @database (HGQuery$hg/type threadFirstPostRelType)))
+        ;(println (count threadFirstPostLinks))
+        ;(def threadFirstPosts (map (fn [threadFirstPostLink] (HGQuery$hg/getOne @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Post) (HGQuery$hg/target threadFirstPostLink)])))) threadFirstPostLinks))
+        ;(println (count threadFirstPosts))
+        ;(println (. (filter (fn [threadFirstPost] (t/within? (t/interval (t/date-time 2013) (t/date-time 2014)) (. threadFirstPost getCreateTime))) threadFirstPosts) size))
+        (def threadHandles (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))
+        (def threadFirstPosts (map (fn [threadHandle] (reduce (fn [currentFirstThreadPostLink threadPostLink] (if (< (. currentFirstThreadPostLink getValue) (. threadPostLink getValue)) currentFirstThreadPostLink threadPostLink)) (HGQuery$hg/getAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Long) (HGQuery$hg/incident threadHandle)])))) ) threadHandles))
+        (def yearBegin (. (t/date-time 2013) getMillis))
+        (def yearEnd (. (t/date-time 2014) getMillis))
+        (println (count (filter (fn [threadFirstPost] (and (>= (. threadFirstPost getValue) yearBegin) (< (. threadFirstPost getValue) yearEnd))) threadFirstPosts)))
+        ;(def threadFirstPosts (map (fn [threadFirstPostLink] (HGQuery$hg/getOne @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Post) (HGQuery$hg/target threadFirstPostLink)])))) threadPostLinks))
+        ;(println (count threadFirstPosts))
+        ;(println (. (filter (fn [threadFirstPost] (t/within? (t/interval (t/date-time 2013) (t/date-time 2014)) (. threadFirstPost getCreateTime))) threadFirstPosts) size))
+
 
         (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
         )
@@ -208,7 +218,12 @@
     (let [operationStart (System/currentTimeMillis)]
       (do
         (println "najbardziej popularny temat w maju 2013")
-
+        (def dateBegin (. (t/date-time 2013 5) getMillis))
+        (def dateEnd (. (t/date-time 2013 6) getMillis))
+        (def threadHandles (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))
+        (def threadPostsCounts (map (fn [threadHandle] (count (filter (fn [date] (and (>= date dateBegin) (< date dateEnd))) (map (fn [threadPostLink] (. threadPostLink getValue)) (HGQuery$hg/getAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Long) (HGQuery$hg/incident threadHandle)]))))))) threadHandles))
+        (def mostPopularThread (reduce (fn [x y] (if (> (last x) (last y)) x y)) (map vector threadHandles threadPostsCounts)))
+        (println (. (. @database get (first mostPopularThread)) getTitle) (last mostPopularThread))
         (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
         )
       )
@@ -256,9 +271,9 @@
         ;(def posts (HGQuery$hg/getAll @database (HGQuery$hg/type Post)))
         ;(println (count (filter (fn [post] (if (re-find #"Frodo" (. post getContent)) true false)) posts)))
         (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
+        (println)
         )
       )
-    (println)
 
     (let [operationStart (System/currentTimeMillis)]
       (do

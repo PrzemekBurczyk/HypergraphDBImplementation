@@ -82,7 +82,7 @@
 
     (def topType (. (. @database getTypeSystem) getTop))
     (def userThreadRelType (HGQuery$hg/assertAtom @database (HGRelType. "user-thread" (into-array HGHandle [topType topType]))))
-    (def userPostRelType (HGQuery$hg/assertAtom @database (HGRelType. "user-post" (into-array HGHandle [topType topType]))))
+    ;(def userPostRelType (HGQuery$hg/assertAtom @database (HGRelType. "user-post" (into-array HGHandle [topType topType]))))
 
     (if (= database-exists 0)
       (do
@@ -141,7 +141,7 @@
               (def postHandle (. @database add post))
 
               (HGQuery$hg/addUnique @database (HGRel. (into-array HGHandle [userHandle threadHandle])) userThreadRelType (HGQuery$hg/link (into-array HGHandle [userHandle threadHandle])))
-              (. @database add (HGRel. (into-array HGHandle [userHandle postHandle])) userPostRelType)
+              (. @database add (HGValueLink. false (into-array HGHandle [userHandle postHandle])))
               (. @database add (HGValueLink. (. (. post getCreateTime) getMillis) (into-array HGHandle [threadHandle postHandle])))
 
               (def saveTime (+ saveTime (- (System/currentTimeMillis) saveStart)))
@@ -149,6 +149,18 @@
 
             )
           )
+
+        (let [saveStart (System/currentTimeMillis)]
+          (def threadHandles (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))
+          (def threadFirstPostLinks (map (fn [threadHandle] (reduce (fn [currentFirstThreadPostLink threadPostLink] (if (< (. (. @database get currentFirstThreadPostLink) getValue) (. (. @database get threadPostLink) getValue)) currentFirstThreadPostLink threadPostLink)) (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Long) (HGQuery$hg/incident threadHandle)])))) ) threadHandles))
+          (def threadFirstPosts (map (fn [threadFirstPostLink] (HGQuery$hg/findOne @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Post) (HGQuery$hg/target threadFirstPostLink)])))) threadFirstPostLinks))
+          (def postUserLinks (map (fn [threadFirstPost] (HGQuery$hg/getOne @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Boolean) (HGQuery$hg/incident threadFirstPost)])))) threadFirstPosts))
+          (doseq [postUserLink postUserLinks]
+            (. postUserLink setValue true)
+            (. @database update postUserLink)
+          )
+          (def saveTime (+ saveTime (- (System/currentTimeMillis) saveStart)))
+        )
 
         (def stop (System/currentTimeMillis))
         (println (string/join " " ["Data parsed and saved in" (String/valueOf (/ (- stop start) 1000.0)) "seconds"]))
@@ -214,12 +226,8 @@
     (let [operationStart (System/currentTimeMillis)]
       (do
         (println "użytkownik komentujący największą liczbę innych użytkowników")
-        ;(def threadHandles (HGQuery$hg/findAll @database (HGQuery$hg/type ForumThread)))
-        ;(def threadFirstPosts (map (fn [threadHandle] (reduce (fn [currentFirstThreadPostLink threadPostLink] (if (< (. currentFirstThreadPostLink getValue) (. threadPostLink getValue)) currentFirstThreadPostLink threadPostLink)) (HGQuery$hg/getAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type Long) (HGQuery$hg/incident threadHandle)])))) ) threadHandles))
         (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/type User)))
-        (def postsCount (map (fn [userHandle] (HGQuery$hg/count @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userPostRelType)])))) userHandles))
-        ;(def usersPosts (map (fn [userPostsLinks] (map (fn [userPostsLink] (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/target userPostsLink) (HGQuery$hg/type Post)])))) userPostsLinks)) usersPostsLinks))
-        ;(def postsCount (map (fn [userPosts] (count (filter (fn [userPost] (not (some #(= userPost %) threadFirstPosts))) userPosts))) usersPosts))
+        (def postsCount (map (fn [userHandle] (count (filter (fn [userPostLink] (= false (. userPostLink getValue))) (HGQuery$hg/getAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type Boolean)])))))) userHandles))
         (def mostActiveUser (reduce (fn [x y] (if (> (last x) (last y)) x y)) (map vector userHandles postsCount)))
         (println (. (. @database get (first mostActiveUser)) getLogin) (last mostActiveUser))
         (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
@@ -243,7 +251,7 @@
         (println "liczba postów wysłanych przez użytkowników z miasta na literę 'K'")
         (def userHandles (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/type User) (AtomPartRegExPredicate. (into-array String ["city"]) (Pattern/compile "^K.*" Pattern/MULTILINE))]))))
         ;(def userHandles (filter (fn [userHandle] (. (. (. @database get userHandle) getCity) startsWith "K")) (HGQuery$hg/findAll @database (HGQuery$hg/type User))))
-        (println (apply + (map (fn [userHandle] (. (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type userPostRelType)]))) size)) userHandles)))
+        (println (apply + (map (fn [userHandle] (. (HGQuery$hg/findAll @database (HGQuery$hg/and (into-array HGQueryCondition [(HGQuery$hg/incident userHandle) (HGQuery$hg/type Boolean)]))) size)) userHandles)))
         (println (string/join " " ["Operation took" (String/valueOf (/ (- (System/currentTimeMillis) operationStart) 1000.0)) "seconds"]))
         (println)
         )

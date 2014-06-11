@@ -26,7 +26,7 @@
     <orderEntry type="library" name="Leiningen: clj-time:0.7.0" level="project" />
     <orderEntry type="library" name="Leiningen: clojure-complete:0.2.3" level="project" />
     <orderEntry type="library" name="Leiningen: com.sleepycat/je:5.0.73" level="project" />
-    <orderEntry type="library" name="Leiningen: org.clojure/clojure:1.5.1" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/clojure:1.6.0" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/tools.nrepl:0.2.3" level="project" />
     <orderEntry type="library" name="Leiningen: org.hypergraphdb/hgbdbje:1.2" level="project" />
     <orderEntry type="library" name="Leiningen: org.hypergraphdb/hgdb:1.2" level="project" />

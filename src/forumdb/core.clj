@@ -1,5 +1,5 @@
 (ns forumdb.core
-  (:import [org.hypergraphdb HGEnvironment HGHandle HGPlainLink HGQuery$hg HGQuery HGValueLink]
+  (:import [org.hypergraphdb HGEnvironment HGHandle HGPlainLink HGQuery$hg HGQuery HGValueLink HGConfiguration]
            (java.util Locale TimeZone)
            (java.text SimpleDateFormat)
            (java.io File)
@@ -7,7 +7,9 @@
            (org.joda.time DateTime)
            (org.hypergraphdb.atom HGRel HGRelType)
            (org.hypergraphdb.query HGQueryCondition AtomPartRegExPredicate)
-           (java.util.regex Pattern))
+           (java.util.regex Pattern)
+           (org.hypergraphdb.indexing ByPartIndexer)
+           (org.hypergraphdb.handle SequentialUUIDHandleFactory))
   (:require [clojure.string :as string]
             [clojure.xml :as xml]
             [clj-time.format :as f]
@@ -35,7 +37,13 @@
   Creates a database or opens existing one from the folder specified by argument
   "
   [path]
-  (let [dbinstance (HGEnvironment/get path)]
+  (def config (HGConfiguration.))
+  (def handleFactory (SequentialUUIDHandleFactory. (System/currentTimeMillis) 0))
+  (. config setHandleFactory handleFactory)
+  (. config setTransactional false)
+  (def storeConfig (. (. config getStoreImplementation) getConfiguration))
+  (. (. storeConfig getEnvironmentConfig) setCacheSize (* (* 1024 1024) 500))
+  (let [dbinstance (HGEnvironment/get path config)]
     (reset! database dbinstance)))
 
 (defn close-database
@@ -83,6 +91,10 @@
     (def topType (. (. @database getTypeSystem) getTop))
     (def userThreadRelType (HGQuery$hg/assertAtom @database (HGRelType. "user-thread" (into-array HGHandle [topType topType]))))
     ;(def userPostRelType (HGQuery$hg/assertAtom @database (HGRelType. "user-post" (into-array HGHandle [topType topType]))))
+
+    ;(def postTypeHandle (. (. @database getTypeSystem) getTypeHandle Post))
+    ;(. (. @database getIndexManager) register (ByPartIndexer. postTypeHandle, "content"))
+    ;(. @database runMaintenance)
 
     (if (= database-exists 0)
       (do

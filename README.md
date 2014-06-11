@@ -1,5 +1,7 @@
 HypergraphDBImplementation
 
+Projekt pokrywa następujące zagadnienia implementacji bazy z użyciem HypergraphDB:
+
 1. możliwości konfiguracji DBMS pod kątem wydajności
 2. możliwości konfiguracji technologii pod kątem wydajności
 3. implementacja persystencji dla systemu obsługi forum dyskusyjnego,
@@ -13,3 +15,6 @@ HypergraphDBImplementation
   * liczba postów zawierających słowo 'Frodo'
   * liczba postów wysłanych przez użytkowników z miasta na literę 'K'
   * 35te najczęściej użyte słowo w treści posta
+
+Sczegółowy opis można odnaleźć na:
+[https://github.com/PrzemekBurczyk/HypergraphDBImplementation/wiki](https://github.com/PrzemekBurczyk/HypergraphDBImplementation/wiki)
